@@ -8,6 +8,7 @@ import urllib
 from bs4 import BeautifulSoup
 import re
 import sys
+import datetime
 
 def getElString(el):
     temp = ""
@@ -56,11 +57,23 @@ def hello_world():
     return 'Hello, World!'
 
 # json_data= {"name":"张三", "age": 20}
+# 全局的News和lastPullTime
+news = []
+lastPullTime = ""
 
 @app.route('/news')
 def get_json():
+	global news
+	global lastPullTime
 	url = 'http://news.sogou.com/news?query=%E7%94%B5%E5%BD%B1'
-	news = getNews(url)
+	#首次拉取，或者
+	#最近一次更新超过15分钟，重新拉取
+	if lastPullTime=="" or datetime.datetime.now() - lastPullTime > datetime.timedelta(minutes = 15):
+		news = getNews(url)
+		lastPullTime = datetime.datetime.now()
+		# app.logger.warning('renew news from remote')
+		print('renew news from remote')
+		
 	resp = jsonify(news)
 	# 跨域设置
 	resp.headers['Access-Control-Allow-Origin'] = '*'
